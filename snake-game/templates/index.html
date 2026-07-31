@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="classic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Snake</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app-wrap">
+  <div class="phone">
+    <div class="speaker-slits"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div class="screen-bezel">
+      <div class="lcd-screen" id="lcdScreen">
+
+        <!-- ===================== HOME ===================== -->
+        <section class="view active" id="view-home">
+          <div class="lcd-title">SNAKE</div>
+          <ul class="menu-list" data-menu="home">
+            <li data-action="new-game" class="selected">New Game</li>
+            <li data-action="continue" data-locked="true">Continue</li>
+            <li data-action="goto-leaderboard">Leaderboard</li>
+            <li data-action="goto-dashboard">Dashboard</li>
+            <li data-action="goto-achievements">Achievements</li>
+            <li data-action="goto-daily">Daily Challenge</li>
+            <li data-action="goto-settings">Settings</li>
+            <li data-action="goto-about">About</li>
+          </ul>
+          <div class="lcd-footer-hint">Hi-Score: <span id="homeHighScore">0</span></div>
+        </section>
+
+        <!-- ===================== MODE SELECT ===================== -->
+        <section class="view" id="view-mode">
+          <div class="lcd-title">SELECT MODE</div>
+          <ul class="menu-list" data-menu="mode">
+            <li data-value="classic" class="selected">Classic <span style="font-size:12px;">walls kill</span></li>
+            <li data-value="wrap">Wrap <span style="font-size:12px;">edges teleport</span></li>
+            <li data-value="endless">Endless <span style="font-size:12px;">no wall death</span></li>
+            <li data-value="maze">Maze <span style="font-size:12px;">fixed obstacles</span></li>
+          </ul>
+          <div class="lcd-footer-hint">OK to confirm</div>
+        </section>
+
+        <!-- ===================== DIFFICULTY SELECT ===================== -->
+        <section class="view" id="view-difficulty">
+          <div class="lcd-title">DIFFICULTY</div>
+          <ul class="menu-list" data-menu="difficulty">
+            <li data-value="easy">Easy</li>
+            <li data-value="medium" class="selected">Medium</li>
+            <li data-value="hard">Hard</li>
+          </ul>
+          <div class="lcd-footer-hint">OK to start</div>
+        </section>
+
+        <!-- ===================== GAME ===================== -->
+        <section class="view" id="view-game">
+          <div class="hud">
+            <div class="hud-item">Score<br><span class="val" id="hudScore">0</span></div>
+            <div class="hud-item">Hi<br><span class="val" id="hudHigh">0</span></div>
+            <div class="hud-item">Len<br><span class="val" id="hudLength">3</span></div>
+            <div class="hud-item">Speed<br><span class="val" id="hudSpeed">1x</span></div>
+            <div class="hud-item">Diff<br><span class="val" id="hudDifficulty">-</span></div>
+            <div class="hud-item">Combo<br><span class="val" id="hudCombo">x1</span></div>
+            <div class="powerup-badge" id="hudPowerup">No power-up active</div>
+          </div>
+          <div class="game-canvas-wrap">
+            <canvas id="gameCanvas" width="300" height="300"></canvas>
+
+            <div class="countdown-overlay" id="countdownOverlay">
+              <div class="countdown-num" id="countdownNum">3</div>
+              <div class="lcd-sub">Get Ready</div>
+            </div>
+
+            <div class="pause-overlay" id="pauseOverlay">
+              <div class="lcd-title">PAUSED</div>
+              <div class="lcd-sub" style="font-size:14px;">Press 5 / OK to resume</div>
+            </div>
+
+            <div class="gameover-overlay" id="gameoverOverlay">
+              <div class="lcd-title">GAME OVER</div>
+              <div class="lcd-sub" id="gameoverScore" style="font-size:26px;">0</div>
+              <div class="lcd-sub" id="gameoverNewHigh" style="font-size:13px;"></div>
+              <div class="lcd-sub" id="gameoverAch" style="font-size:12px;"></div>
+              <div class="lcd-footer-hint">Left: Menu &nbsp; Right: Retry</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== LEADERBOARD ===================== -->
+        <section class="view" id="view-leaderboard">
+          <div class="lcd-title">LEADERBOARD</div>
+          <div class="tab-row" id="lbTabs">
+            <button data-period="global" class="active">Global</button>
+            <button data-period="weekly">Weekly</button>
+            <button data-period="monthly">Monthly</button>
+            <button data-period="personal">Best</button>
+          </div>
+          <div class="lb-table" id="lbTable"><div class="lcd-sub" style="font-size:14px;">Loading...</div></div>
+        </section>
+
+        <!-- ===================== DASHBOARD ===================== -->
+        <section class="view" id="view-dashboard">
+          <div class="lcd-title">DASHBOARD</div>
+          <div class="stats-grid" id="statsGrid"><div class="lcd-sub" style="font-size:14px;">Login to view stats</div></div>
+        </section>
+
+        <!-- ===================== ACHIEVEMENTS ===================== -->
+        <section class="view" id="view-achievements">
+          <div class="lcd-title">ACHIEVEMENTS</div>
+          <div class="ach-grid" id="achGrid"><div class="lcd-sub" style="font-size:14px;">Login to view achievements</div></div>
+        </section>
+
+        <!-- ===================== DAILY CHALLENGE ===================== -->
+        <section class="view" id="view-daily">
+          <div class="lcd-title">DAILY CHALLENGE</div>
+          <div class="lcd-sub" id="dailyDesc" style="font-size:16px; margin-top:12px;">Login to view today's challenge</div>
+          <div class="lcd-sub" id="dailyStatus" style="font-size:14px; margin-top:10px;"></div>
+        </section>
+
+        <!-- ===================== SETTINGS ===================== -->
+        <section class="view" id="view-settings">
+          <div class="lcd-title">SETTINGS</div>
+          <div class="settings-list">
+            <div class="settings-row">
+              <span>Theme</span>
+              <div class="theme-swatches" id="themeSwatches">
+                <span class="swatch active" data-theme="classic" style="background:#9bbc0f;"></span>
+                <span class="swatch" data-theme="dark" style="background:#1b1f1b;"></span>
+                <span class="swatch" data-theme="neon" style="background:#0d0018;"></span>
+                <span class="swatch" data-theme="blue" style="background:#a9d4e8;"></span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <span>Sound Effects</span>
+              <div class="toggle on" id="toggleSound"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row">
+              <span>Music</span>
+              <div class="toggle on" id="toggleMusic"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row">
+              <span>Volume</span>
+              <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.7">
+            </div>
+            <div class="settings-row">
+              <span>FPS Counter</span>
+              <div class="toggle" id="toggleFps"><div class="knob"></div></div>
+            </div>
+            <div class="settings-row">
+              <span>Controls</span>
+              <span id="controlsLabel" style="font-size:14px;">Arrows / D-Pad</span>
+            </div>
+          </div>
+          <div class="lcd-footer-hint">Settings save automatically</div>
+        </section>
+
+        <!-- ===================== ABOUT ===================== -->
+        <section class="view" id="view-about">
+          <div class="lcd-title">ABOUT</div>
+          <div class="about-body">
+            <p>Nokia Snake — a full-stack tribute to the Nokia 3310 classic.</p>
+            <ul>
+              <li>4 modes: Classic, Wrap, Endless, Maze</li>
+              <li>3 difficulties, 3 food types, 6 power-ups</li>
+              <li>Obstacles unlock past 100 points</li>
+              <li>Accounts, leaderboards, achievements &amp; stats</li>
+              <li>Flask + MongoDB backend, vanilla JS frontend</li>
+            </ul>
+            <p style="font-size:13px; opacity:0.8;">Secret: try the classic Konami code on your keyboard.</p>
+          </div>
+        </section>
+
+        <div class="toast" id="toast"></div>
+      </div><!-- /lcd-screen -->
+    </div><!-- /screen-bezel -->
+
+    <!-- ===================== PHYSICAL KEYPAD ===================== -->
+    <div class="keypad">
+      <div class="softkeys">
+        <button class="softkey" id="softLeft">Back</button>
+        <button class="softkey" id="softRight">Select</button>
+      </div>
+
+      <div class="dpad">
+        <button class="up" data-dir="up">▲</button>
+        <button class="left" data-dir="left">◀</button>
+        <button class="center" id="dpadCenter">OK</button>
+        <button class="right" data-dir="right">▶</button>
+        <button class="down" data-dir="down">▼</button>
+      </div>
+
+      <div class="keypad-grid">
+        <button data-key="1">1<span class="small">sound</span></button>
+        <button data-key="2" data-dir="up">2<span class="small">▲</span></button>
+        <button data-key="3">3<span class="small">fps</span></button>
+        <button data-key="4" data-dir="left">4<span class="small">◀</span></button>
+        <button data-key="5" data-dir="ok">5<span class="small">ok</span></button>
+        <button data-key="6" data-dir="right">6<span class="small">▶</span></button>
+        <button data-key="7">7<span class="small">theme</span></button>
+        <button data-key="8" data-dir="down">8<span class="small">▼</span></button>
+        <button data-key="9">9<span class="small">shot</span></button>
+        <button data-key="*">*<span class="small">AI demo</span></button>
+        <button data-key="0">0<span class="small">full scr</span></button>
+        <button data-key="#">#<span class="small">replay</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sound.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+</body>
+</html>

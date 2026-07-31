@@ -1,0 +1,468 @@
+/* ==========================================================================
+   Nokia Snake — stylesheet
+   Design: an actual Nokia 3310-style handset shell renders the whole app.
+   The LCD screen inside the shell hosts every view (home, auth, game,
+   leaderboard, dashboard, settings, about...). Four selectable LCD themes
+   swap the screen's palette via CSS variables.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  /* ---- Theme: classic (default Nokia 3310 green LCD) ---- */
+  --lcd-bg: #9bbc0f;
+  --lcd-bg-2: #8bac0f;
+  --lcd-fg: #0f380f;
+  --lcd-fg-dim: #306230;
+  --lcd-accent: #0f380f;
+  --lcd-danger: #4a0f0f;
+  --lcd-grid: rgba(15, 56, 15, 0.08);
+
+  --shell-body: #4a4d47;
+  --shell-body-2: #35372f;
+  --shell-trim: #2a2c26;
+  --shell-highlight: #6a6d63;
+  --key-face: #d8d4c4;
+  --key-face-2: #c4bfa9;
+  --key-text: #2a2c26;
+
+  --font-lcd: 'VT323', 'Space Mono', monospace;
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-ui: 'Space Mono', monospace;
+
+  --radius-shell: 38px;
+  --radius-screen: 10px;
+}
+
+[data-theme="dark"] {
+  --lcd-bg: #1b1f1b;
+  --lcd-bg-2: #14170f;
+  --lcd-fg: #7bdc7b;
+  --lcd-fg-dim: #3f6b3f;
+  --lcd-accent: #7bdc7b;
+  --lcd-danger: #e05656;
+  --lcd-grid: rgba(123, 220, 123, 0.06);
+}
+
+[data-theme="neon"] {
+  --lcd-bg: #0d0018;
+  --lcd-bg-2: #16002b;
+  --lcd-fg: #ff2fd8;
+  --lcd-fg-dim: #7a1f8f;
+  --lcd-accent: #33fff0;
+  --lcd-danger: #ff2f4d;
+  --lcd-grid: rgba(255, 47, 216, 0.08);
+}
+
+[data-theme="blue"] {
+  --lcd-bg: #a9d4e8;
+  --lcd-bg-2: #93c3da;
+  --lcd-fg: #0b2e4a;
+  --lcd-fg-dim: #3a688a;
+  --lcd-accent: #0b2e4a;
+  --lcd-danger: #7a1414;
+  --lcd-grid: rgba(11, 46, 74, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #1c1d1a;
+  background-image: radial-gradient(circle at 50% -10%, #2c2e28 0%, #14150f 70%);
+  font-family: var(--font-ui);
+  color: var(--key-text);
+  overflow-x: hidden;
+}
+
+.app-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+}
+
+/* ==========================================================================
+   Phone shell (flattened)
+   ========================================================================== */
+.phone {
+  width: 100%;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+  position: static;
+}
+
+.phone::before {
+  display: none;
+}
+
+.speaker-slits {
+  display: none;
+}
+
+/* ---- Screen bezel + LCD ---- */
+.screen-bezel {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.lcd-screen {
+  position: relative;
+  background: linear-gradient(180deg, var(--lcd-bg) 0%, var(--lcd-bg-2) 100%);
+  border-radius: 0;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  font-family: var(--font-lcd);
+  color: var(--lcd-fg);
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.35);
+}
+
+.lcd-screen::after {
+  /* scanline / pixel-grid texture */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--lcd-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--lcd-grid) 1px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  padding: 10px 12px;
+  animation: viewIn 180ms ease-out;
+}
+.view.active { display: flex; }
+
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lcd-title {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 2px 0 10px;
+  color: var(--lcd-fg);
+}
+
+.lcd-sub {
+  font-size: 18px;
+  opacity: 0.85;
+  text-align: center;
+}
+
+/* ---- Menu lists ---- */
+.menu-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+.menu-list li {
+  font-size: 21px;
+  padding: 7px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.menu-list li.selected {
+  background: var(--lcd-fg);
+  color: var(--lcd-bg);
+}
+.menu-list li[data-locked="true"] {
+  opacity: 0.55;
+}
+
+.lcd-footer-hint {
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.75;
+  border-top: 1px dashed var(--lcd-fg-dim);
+  padding-top: 6px;
+  margin-top: 6px;
+}
+
+/* ---- Forms ---- */
+.lcd-form { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.lcd-field { display: flex; flex-direction: column; gap: 2px; }
+.lcd-field label { font-size: 14px; opacity: 0.8; }
+.lcd-field input, .lcd-field select {
+  font-family: var(--font-lcd);
+  font-size: 20px;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid var(--lcd-fg-dim);
+  color: var(--lcd-fg);
+  padding: 5px 8px;
+  border-radius: 2px;
+  outline: none;
+}
+.lcd-field input:focus, .lcd-field select:focus {
+  border-color: var(--lcd-fg);
+  background: rgba(0,0,0,0.12);
+}
+.lcd-error {
+  font-size: 14px;
+  color: var(--lcd-danger);
+  min-height: 16px;
+}
+.lcd-msg { font-size: 15px; text-align:center; opacity:0.9; min-height: 18px; }
+
+.lcd-btn-row { display: flex; gap: 8px; margin-top: auto; }
+.lcd-btn {
+  flex: 1;
+  font-family: var(--font-lcd);
+  font-size: 18px;
+  background: var(--lcd-fg);
+  color: var(--lcd-bg);
+  border: none;
+  padding: 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.lcd-btn.ghost {
+  background: transparent;
+  border: 1px solid var(--lcd-fg-dim);
+  color: var(--lcd-fg);
+}
+
+/* ---- HUD ---- */
+.hud {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px 8px;
+  font-size: 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--lcd-fg-dim);
+  margin-bottom: 4px;
+}
+.hud .hud-item span.val { font-family: var(--font-lcd); font-size: 18px; }
+.hud .powerup-badge {
+  grid-column: 1 / -1;
+  font-size: 14px;
+  text-align: center;
+}
+
+.game-canvas-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.countdown-overlay, .pause-overlay, .gameover-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.15);
+  text-align: center;
+  gap: 6px;
+}
+.countdown-overlay.active, .pause-overlay.active, .gameover-overlay.active { display: flex; }
+.countdown-num {
+  font-family: var(--font-pixel);
+  font-size: 46px;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
+
+.gameover-overlay .lcd-title { margin-top: 0; }
+
+/* ---- Leaderboard / dashboard / achievements tables ---- */
+.tab-row { display:flex; gap:4px; margin-bottom:6px; }
+.tab-row button {
+  flex:1; font-family: var(--font-lcd); font-size:15px;
+  background: transparent; border:1px solid var(--lcd-fg-dim); color:var(--lcd-fg);
+  padding:4px; border-radius:3px; cursor:pointer;
+}
+.tab-row button.active { background: var(--lcd-fg); color: var(--lcd-bg); }
+
+.lb-table, .stats-grid {
+  flex:1; overflow-y:auto; font-size: 16px;
+}
+.lb-row {
+  display:flex; justify-content:space-between; padding: 3px 2px;
+  border-bottom: 1px dotted var(--lcd-fg-dim);
+}
+.lb-row .rank { width: 26px; }
+.lb-row .uname { flex: 1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.stats-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; align-content:start; }
+.stat-box { border: 1px solid var(--lcd-fg-dim); border-radius: 3px; padding: 6px; }
+.stat-box .label { font-size: 12px; opacity: 0.75; }
+.stat-box .value { font-family: var(--font-lcd); font-size: 22px; }
+
+.ach-grid { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px; }
+.ach-card {
+  display:flex; align-items:center; gap:8px; border:1px solid var(--lcd-fg-dim);
+  border-radius:3px; padding:5px 7px; opacity: 0.45;
+}
+.ach-card.unlocked { opacity: 1; background: rgba(0,0,0,0.05); }
+.ach-card .icon { font-size: 20px; }
+.ach-card .meta { flex:1; }
+.ach-card .meta .name { font-size:15px; font-weight:bold; }
+.ach-card .meta .desc { font-size: 12px; opacity: 0.85; }
+
+/* ---- Settings ---- */
+.settings-list { display:flex; flex-direction:column; gap: 8px; flex:1; overflow-y:auto; }
+.settings-row { display:flex; justify-content:space-between; align-items:center; font-size:16px; }
+.theme-swatches { display:flex; gap:6px; }
+.theme-swatches .swatch {
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent;
+}
+.theme-swatches .swatch.active { border-color: var(--lcd-fg); }
+
+.toggle {
+  width: 38px; height: 20px; border-radius: 12px; background: var(--lcd-fg-dim);
+  position: relative; cursor: pointer; flex-shrink: 0;
+}
+.toggle.on { background: var(--lcd-fg); }
+.toggle .knob {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--lcd-bg); transition: left 120ms ease;
+}
+.toggle.on .knob { left: 20px; }
+
+/* ---- About ---- */
+.about-body { font-size: 15px; line-height: 1.5; overflow-y:auto; flex:1; }
+.about-body ul { padding-left: 18px; margin: 6px 0; }
+
+/* ---- Toast ---- */
+.toast {
+  position: absolute;
+  left: 50%; bottom: 8px; transform: translate(-50%, 8px);
+  background: var(--lcd-fg); color: var(--lcd-bg);
+  font-size: 13px; padding: 5px 10px; border-radius: 12px;
+  opacity: 0; transition: all 200ms ease; pointer-events: none;
+  white-space: nowrap; max-width: 90%; overflow:hidden; text-overflow: ellipsis;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ==========================================================================
+   Physical keypad
+   ========================================================================== */
+.keypad {
+  display: none;
+  margin-top: 18px;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.softkeys {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 6px;
+}
+.softkey {
+  background: linear-gradient(180deg, var(--key-face) 0%, var(--key-face-2) 100%);
+  color: var(--key-text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.35);
+  cursor: pointer;
+}
+.softkey:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+
+.dpad {
+  position: relative;
+  width: 130px;
+  height: 130px;
+}
+.dpad button {
+  position: absolute;
+  background: linear-gradient(180deg, var(--key-face) 0%, var(--key-face-2) 100%);
+  border: none;
+  color: var(--key-text);
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.35);
+}
+.dpad button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+.dpad .up    { top:0; left:44px; width:42px; height:42px; border-radius: 10px 10px 4px 4px; }
+.dpad .down  { bottom:0; left:44px; width:42px; height:42px; border-radius: 4px 4px 10px 10px; }
+.dpad .left  { top:44px; left:0; width:42px; height:42px; border-radius: 10px 4px 4px 10px; }
+.dpad .right { top:44px; right:0; width:42px; height:42px; border-radius: 4px 10px 10px 4px; }
+.dpad .center{
+  top:44px; left:44px; width:42px; height:42px; border-radius: 50%;
+  background: var(--shell-trim); color: var(--key-face);
+  font-size: 10px; font-family: var(--font-pixel);
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+.keypad-grid button {
+  background: linear-gradient(180deg, var(--key-face) 0%, var(--key-face-2) 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--key-text);
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.35);
+}
+.keypad-grid button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+.keypad-grid button .small { display:block; font-size: 9px; opacity: 0.6; font-weight: 400; }
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 480px) {
+  .phone { padding: 16px 12px 22px; border-radius: 28px; }
+  .lcd-screen { height: 58vh; min-height: 360px; }
+  .dpad { width: 112px; height: 112px; }
+  .dpad .up, .dpad .down, .dpad .left, .dpad .right { width: 36px; height: 36px; }
+  .dpad .up, .dpad .down { left: 38px; }
+  .dpad .left { top: 38px; }
+  .dpad .right { top: 38px; }
+  .dpad .center { top: 38px; left: 38px; width: 36px; height: 36px; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .countdown-num, .view { animation: none !important; }
+}
+
+.hidden { display: none !important; }
